@@ -5,7 +5,7 @@ use utils::INFINITY;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
-use crate::materials::{Lambertian, Metal, Dielectric};
+use crate::materials::{Dielectric, Lambertian, Metal};
 use crate::objects::Sphere;
 use crate::output_buffer::OutputBuffer;
 use crate::ray::Ray;
@@ -68,7 +68,21 @@ fn main() {
         material_right.clone(),
     )));
 
-    let cam = Camera::new();
+    let lookfrom = Point3::new(3.0, 3.0, 2.0);
+    let lookat = Point3::new(0.0, 0.0, -1.0);
+    let vup = Vec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
+
+    let cam = Camera::new(
+        lookfrom,
+        lookat,
+        vup,
+        20.0,
+        ASPECT_RATIO,
+        aperture,
+        dist_to_focus,
+    );
 
     let mut buffer = OutputBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT, NR_CHANNELS);
 
