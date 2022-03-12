@@ -24,10 +24,11 @@ impl OutputBuffer {
         let mut g = color.y;
         let mut b = color.z;
 
+        // Divide the color by the number of samples and gamma-correct for gamma=2.0
         let scale = 1.0 / (samples_per_pixel as f32);
-        r *= scale;
-        g *= scale;
-        b *= scale;
+        r = f32::sqrt(scale * r);
+        g = f32::sqrt(scale * g);
+        b = f32::sqrt(scale * b);
 
         let idx = (((self.height - y - 1) * self.width + x) * self.nr_channels) as usize;
         self.buffer[idx + 0] = (256.0 * clamp(r, 0.0, 0.999)) as u8;

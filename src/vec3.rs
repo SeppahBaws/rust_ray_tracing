@@ -1,6 +1,8 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
-#[derive(Clone, Copy, Debug)]
+use crate::utils::{random, random_range};
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -19,12 +21,56 @@ impl Vec3 {
         Self { x: f, y: f, z: f }
     }
 
+    pub fn random() -> Self {
+        Self {
+            x: random(),
+            y: random(),
+            z: random(),
+        }
+    }
+
+    pub fn random_range(min: f32, max: f32) -> Self {
+        Self {
+            x: random_range(min, max),
+            y: random_range(min, max),
+            z: random_range(min, max),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random_range(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        Vec3::unit_vector(Vec3::random_in_unit_sphere())
+    }
+
+    pub fn random_in_hemisphere(normal: &Vec3) -> Self {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if Vec3::dot(&in_unit_sphere, &normal) > 0.0 {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
+    }
+
     pub fn length(&self) -> f32 {
         f32::sqrt(self.length_squared())
     }
 
     pub fn length_squared(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        f32::abs(self.x) < s && f32::abs(self.y) < s && f32::abs(self.z) < s
     }
 
     pub fn dot(u: &Self, v: &Self) -> f32 {
@@ -41,6 +87,10 @@ impl Vec3 {
 
     pub fn unit_vector(v: Self) -> Self {
         v / v.length()
+    }
+
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+        *v - 2.0 * Vec3::dot(v, n) * *n
     }
 }
 
