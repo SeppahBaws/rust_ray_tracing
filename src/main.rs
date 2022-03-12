@@ -5,7 +5,7 @@ use utils::INFINITY;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
-use crate::materials::{Lambertian, Metal};
+use crate::materials::{Lambertian, Metal, Dielectric};
 use crate::objects::Sphere;
 use crate::output_buffer::OutputBuffer;
 use crate::ray::Ray;
@@ -33,9 +33,9 @@ fn main() {
     let mut world = HittableList::new();
 
     let material_ground = Lambertian::new(Color::new(0.8, 0.8, 0.0));
-    let material_center = Lambertian::new(Color::new(0.7, 0.3, 0.3));
-    let material_left = Metal::new(Color::new(0.8, 0.8, 0.8));
-    let material_right = Metal::new(Color::new(0.8, 0.6, 0.2));
+    let material_center = Lambertian::new(Color::new(0.1, 0.2, 0.5));
+    let material_left = Dielectric::new(1.5);
+    let material_right = Metal::new(Color::new(0.8, 0.6, 0.2), 0.0);
 
     // Ground
     world.add(Box::new(Sphere::new(
@@ -53,6 +53,12 @@ fn main() {
     world.add(Box::new(Sphere::new(
         Point3::new(-1.0, 0.0, -1.0),
         0.5,
+        material_left.clone(),
+    )));
+    // Left inner sphere
+    world.add(Box::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        -0.4,
         material_left.clone(),
     )));
     // Right sphere
