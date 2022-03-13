@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use hittable::Hittable;
-use utils::INFINITY;
+use utils::{random_range, INFINITY};
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
@@ -23,56 +23,20 @@ mod utils;
 mod vec3;
 
 fn main() {
-    const ASPECT_RATIO: f32 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u32 = 400;
+    const ASPECT_RATIO: f32 = 3.0 / 2.0;
+    const IMAGE_WIDTH: u32 = 1200;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f32 / ASPECT_RATIO) as u32;
     const NR_CHANNELS: u32 = 3;
-    const SAMPLES_PER_PIXEL: u32 = 100;
+    const SAMPLES_PER_PIXEL: u32 = 500;
     const MAX_DEPTH: i32 = 50;
 
-    let mut world = HittableList::new();
+    let world = random_scene();
 
-    let material_ground = Lambertian::new(Color::new(0.8, 0.8, 0.0));
-    let material_center = Lambertian::new(Color::new(0.1, 0.2, 0.5));
-    let material_left = Dielectric::new(1.5);
-    let material_right = Metal::new(Color::new(0.8, 0.6, 0.2), 0.0);
-
-    // Ground
-    world.add(Box::new(Sphere::new(
-        Point3::new(0.0, -100.5, -1.0),
-        100.0,
-        material_ground.clone(),
-    )));
-    // Center sphere
-    world.add(Box::new(Sphere::new(
-        Point3::new(0.0, 0.0, -1.0),
-        0.5,
-        material_center.clone(),
-    )));
-    // Left sphere
-    world.add(Box::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
-        0.5,
-        material_left.clone(),
-    )));
-    // Left inner sphere
-    world.add(Box::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
-        -0.4,
-        material_left.clone(),
-    )));
-    // Right sphere
-    world.add(Box::new(Sphere::new(
-        Point3::new(1.0, 0.0, -1.0),
-        0.5,
-        material_right.clone(),
-    )));
-
-    let lookfrom = Point3::new(3.0, 3.0, 2.0);
-    let lookat = Point3::new(0.0, 0.0, -1.0);
+    let lookfrom = Point3::new(13.0, 2.0, 3.0);
+    let lookat = Point3::new(0.0, 0.0, 0.0);
     let vup = Vec3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = (lookfrom - lookat).length();
-    let aperture = 2.0;
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
 
     let cam = Camera::new(
         lookfrom,
@@ -161,4 +125,62 @@ fn ray_color(r: &Ray, world: &HittableList, depth: i32) -> Color {
     let unit_direction = Vec3::unit_vector(r.direction);
     let t = 0.5 * (unit_direction.y + 1.0);
     (1.0 - t) * Color::from(1.0) + t * Color::new(0.5, 0.7, 1.0)
+}
+
+fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material.clone(),
+    )));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = random();
+            let center = Point3::new(
+                (a as f32) + 0.9 * random(),
+                0.2,
+                (b as f32) + 0.9 * random(),
+            );
+
+            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    // Diffuse
+                    let albedo = Color::random() * Color::random();
+                    world.add(Box::new(Sphere::new(center, 0.2, Lambertian::new(albedo))));
+                } else if choose_mat < 0.95 {
+                    // Metal
+                    let albedo = Color::random_range(0.5, 1.0);
+                    let fuzz = random_range(0.0, 0.5);
+                    world.add(Box::new(Sphere::new(center, 0.2, Metal::new(albedo, fuzz))));
+                } else {
+                    // Glass
+                    world.add(Box::new(Sphere::new(center, 0.2, Dielectric::new(1.5))));
+                }
+            }
+        }
+    }
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, 1.0, 0.0),
+        1.0,
+        Dielectric::new(1.5),
+    )));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(-4.0, 1.0, 0.0),
+        1.0,
+        Lambertian::new(Color::new(0.4, 0.2, 0.1)),
+    )));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(4.0, 1.0, 0.0),
+        1.0,
+        Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
+    )));
+
+    world
 }
