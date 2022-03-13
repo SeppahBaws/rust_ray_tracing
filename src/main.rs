@@ -23,11 +23,11 @@ mod utils;
 mod vec3;
 
 fn main() {
-    const ASPECT_RATIO: f32 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 1200;
+    const ASPECT_RATIO: f32 = 16.0 / 9.0;
+    const IMAGE_WIDTH: u32 = 400;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f32 / ASPECT_RATIO) as u32;
     const NR_CHANNELS: u32 = 3;
-    const SAMPLES_PER_PIXEL: u32 = 500;
+    const SAMPLES_PER_PIXEL: u32 = 100;
     const MAX_DEPTH: i32 = 50;
 
     let world = random_scene();
