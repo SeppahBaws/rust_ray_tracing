@@ -59,3 +59,75 @@ impl<M: Material> Hittable for Sphere<M> {
         Some(rec)
     }
 }
+
+pub struct MovingSphere<M: Material> {
+    center0: Point3,
+    center1: Point3,
+    radius: f32,
+    material: M,
+    time0: f32,
+    time1: f32,
+}
+
+impl<M: Material> MovingSphere<M> {
+    pub fn new(
+        center0: Point3,
+        center1: Point3,
+        time0: f32,
+        time1: f32,
+        radius: f32,
+        material: M,
+    ) -> Self {
+        Self {
+            center0,
+            center1,
+            radius,
+            material,
+            time0,
+            time1,
+        }
+    }
+}
+
+pub fn center<M: Material>(sphere: &MovingSphere<M>, time: f32) -> Point3 {
+    sphere.center0 + ((time - sphere.time0) / (sphere.time1 - sphere.time0)) * (sphere.center1 - sphere.center0)
+}
+
+impl<M: Material> Hittable for MovingSphere<M> {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let oc = ray.origin - center(&self, ray.time);
+        let a = ray.direction.length_squared();
+        let half_b = Vec3::dot(&oc, &ray.direction);
+        let c = oc.length_squared() - self.radius * self.radius;
+
+        let discriminant = half_b * half_b - a * c;
+        if discriminant < 0.0 {
+            return None;
+        }
+
+        let sqrtd = f32::sqrt(discriminant);
+
+        // Find the nearset root that lies in the acceptable range.
+        let mut root = (-half_b - sqrtd) / a;
+        if root < t_min || t_max < root {
+            root = (-half_b + sqrtd) / a;
+            if root < t_min || t_max < root {
+                return None;
+            }
+        }
+
+        let p = ray.at(root);
+        let outward_normal = (p - center(&self, ray.time)) / self.radius;
+        let mut rec = HitRecord {
+            t: root,
+            p,
+            normal: Vec3::from(0.0),
+            mat: &self.material,
+            front_face: true,
+        };
+
+        rec.set_face_normal(ray, &outward_normal);
+
+        Some(rec)
+    }
+}

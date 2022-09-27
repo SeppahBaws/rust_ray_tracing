@@ -6,7 +6,7 @@ use utils::{random_range, INFINITY};
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
 use crate::materials::{Dielectric, Lambertian, Metal};
-use crate::objects::Sphere;
+use crate::objects::{MovingSphere, Sphere};
 use crate::output_buffer::OutputBuffer;
 use crate::ray::Ray;
 use crate::utils::random;
@@ -46,6 +46,8 @@ fn main() {
         ASPECT_RATIO,
         aperture,
         dist_to_focus,
+        0.0,
+        1.0,
     );
 
     let mut buffer = OutputBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT, NR_CHANNELS);
@@ -150,7 +152,11 @@ fn random_scene() -> HittableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Color::random() * Color::random();
-                    world.add(Box::new(Sphere::new(center, 0.2, Lambertian::new(albedo))));
+                    let material = Lambertian::new(albedo);
+                    let center2 = center + Vec3::new(0.0, random_range(0.0, 0.5), 0.0);
+                    world.add(Box::new(MovingSphere::new(
+                        center, center2, 0.0, 1.0, 0.2, material,
+                    )));
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Color::random_range(0.5, 1.0);
