@@ -3,6 +3,7 @@ use std::io::Write;
 use std::rc::Rc;
 use std::time::SystemTime;
 use texture::CheckerTexture;
+use texture::NoiseTexture;
 use texture::SolidColor;
 
 use camera::Camera;
@@ -24,6 +25,7 @@ mod hittable_list;
 mod materials;
 mod objects;
 mod output_buffer;
+mod perlin;
 mod ray;
 mod texture;
 mod utils;
@@ -54,8 +56,15 @@ fn main() {
             vfov: 20.0,
             aperture: 0.1,
         },
-        2 | _ => SceneInfo {
+        2 => SceneInfo {
             world: two_spheres(),
+            lookfrom: Point3::new(13.0, 2.0, 3.0),
+            lookat: Point3::from(0.0),
+            vfov: 20.0,
+            aperture: 0.0,
+        },
+        3 | _ => SceneInfo {
+            world: two_perlin_spheres(),
             lookfrom: Point3::new(13.0, 2.0, 3.0),
             lookat: Point3::from(0.0),
             vfov: 20.0,
@@ -251,6 +260,25 @@ fn two_spheres() -> HittableList {
         Point3::new(0.0, 10.0, 0.0),
         10.0,
         Lambertian::from_texture(checker.clone()),
+    )));
+
+    world
+}
+
+fn two_perlin_spheres() -> HittableList {
+    let mut world = HittableList::new();
+
+    let perlin_texture = Rc::new(NoiseTexture::new(4.0));
+
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Lambertian::from_texture(perlin_texture.clone()),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Lambertian::from_texture(perlin_texture.clone()),
     )));
 
     world

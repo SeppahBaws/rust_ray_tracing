@@ -9,6 +9,12 @@ yep, that's it.
 ## Renders archive
 
 <details>
+<summary>Perlin noise marble texture</summary>
+
+![motion blur](./renders/perlin_marble.png)
+</details>
+
+<details>
 <summary>Checkered spheres</summary>
 
 ![motion blur](./renders/checkered_spheres.png)
