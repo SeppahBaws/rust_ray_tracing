@@ -1,17 +1,24 @@
+use rand::Rng;
 use std::io::Write;
+use std::rc::Rc;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
+use camera::Camera;
 use hittable::Hittable;
-use utils::{random_range, INFINITY};
+use hittable_list::HittableList;
+use materials::{Dielectric, Lambertian, Metal};
+use objects::{MovingSphere, Sphere};
+use output_buffer::OutputBuffer;
+use ray::Ray;
+use utils::random;
+use utils::INFINITY;
+use vec3::{Color, Point3, Vec3};
 
-use crate::camera::Camera;
-use crate::hittable_list::HittableList;
-use crate::materials::{Dielectric, Lambertian, Metal};
-use crate::objects::{MovingSphere, Sphere};
-use crate::output_buffer::OutputBuffer;
-use crate::ray::Ray;
-use crate::utils::random;
-use crate::vec3::{Color, Point3, Vec3};
+use crate::bvh::BVHNode;
 
+mod aabb;
+mod bvh;
 mod camera;
 mod hittable;
 mod hittable_list;
@@ -62,6 +69,8 @@ fn main() {
         MAX_DEPTH
     );
 
+    let begin = SystemTime::now();
+
     for j in (0..IMAGE_HEIGHT).rev() {
         print!("\rScanlines remaining: {:04}", j);
         std::io::stdout().flush().unwrap();
@@ -81,8 +90,10 @@ fn main() {
         }
     }
 
+    let end = SystemTime::now().duration_since(begin).unwrap().as_secs();
+
     let now = chrono::Local::now();
-    println!("\rFinished rendering at {}", now.format("%H:%M:%S"));
+    println!("\rFinished rendering at {} - took {}s", now.format("%H:%M:%S"), end);
     println!("Writing buffer to file...");
 
     if NR_CHANNELS != 3 && NR_CHANNELS != 4 {
@@ -133,7 +144,7 @@ fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
     let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         ground_material.clone(),
@@ -153,40 +164,42 @@ fn random_scene() -> HittableList {
                     // Diffuse
                     let albedo = Color::random() * Color::random();
                     let material = Lambertian::new(albedo);
-                    let center2 = center + Vec3::new(0.0, random_range(0.0, 0.5), 0.0);
-                    world.add(Box::new(MovingSphere::new(
+                    let center2 =
+                        center + Vec3::new(0.0, rand::thread_rng().gen_range(0.0..0.5), 0.0);
+                    world.add(Rc::new(MovingSphere::new(
                         center, center2, 0.0, 1.0, 0.2, material,
                     )));
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Color::random_range(0.5, 1.0);
-                    let fuzz = random_range(0.0, 0.5);
-                    world.add(Box::new(Sphere::new(center, 0.2, Metal::new(albedo, fuzz))));
+                    let fuzz = rand::thread_rng().gen_range(0.0..0.5);
+                    world.add(Rc::new(Sphere::new(center, 0.2, Metal::new(albedo, fuzz))));
                 } else {
                     // Glass
-                    world.add(Box::new(Sphere::new(center, 0.2, Dielectric::new(1.5))));
+                    world.add(Rc::new(Sphere::new(center, 0.2, Dielectric::new(1.5))));
                 }
             }
         }
     }
 
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         Dielectric::new(1.5),
     )));
 
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         Lambertian::new(Color::new(0.4, 0.2, 0.1)),
     )));
 
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
         Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
     )));
 
-    world
+    // world
+    HittableList::from(Rc::new(bvh::BVHNode::from(&world, 0.0, 1.0)))
 }

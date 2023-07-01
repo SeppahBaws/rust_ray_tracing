@@ -1,10 +1,13 @@
+use std::rc::Rc;
+
 use crate::{
+    aabb::AABB,
     hittable::{HitRecord, Hittable},
     ray::Ray,
 };
 
 pub struct HittableList {
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Rc<dyn Hittable>>,
 }
 
 impl HittableList {
@@ -14,7 +17,7 @@ impl HittableList {
         }
     }
 
-    pub fn from(obj: Box<dyn Hittable>) -> Self {
+    pub fn from(obj: Rc<dyn Hittable>) -> Self {
         let mut this = Self {
             objects: Vec::new(),
         };
@@ -28,7 +31,7 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, obj: Box<dyn Hittable>) {
+    pub fn add(&mut self, obj: Rc<dyn Hittable>) {
         self.objects.push(obj);
     }
 }
@@ -49,5 +52,30 @@ impl Hittable for HittableList {
         }
 
         hit_anything
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        if self.objects.is_empty() {
+            return None;
+        }
+
+        let temp_box = AABB::empty();
+        let mut output_box = AABB::empty();
+        let mut first_box = true;
+
+        for object in self.objects.iter() {
+            if object.bounding_box(t0, t1).is_none() {
+                return None;
+            }
+
+            output_box = if first_box {
+                temp_box.clone()
+            } else {
+                AABB::surrounding_box(&output_box, &temp_box)
+            };
+            first_box = false;
+        }
+
+        Some(output_box)
     }
 }

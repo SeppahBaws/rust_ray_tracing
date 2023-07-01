@@ -1,6 +1,7 @@
+use rand::Rng;
 use crate::{
     ray::Ray,
-    utils::{random_range, to_radians},
+    utils::to_radians,
     vec3::{Point3, Vec3},
 };
 
@@ -67,7 +68,7 @@ impl Camera {
             self.lower_left_corner + s * self.horiozontal + t * self.vertical
                 - self.origin
                 - offset,
-            random_range(self.time0, self.time1),
+            rand::thread_rng().gen_range(self.time0..self.time1),
         )
     }
 }

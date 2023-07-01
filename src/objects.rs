@@ -1,4 +1,5 @@
 use crate::{
+    aabb::AABB,
     hittable::{HitRecord, Hittable},
     materials::Material,
     ray::Ray,
@@ -58,6 +59,15 @@ impl<M: Material> Hittable for Sphere<M> {
 
         Some(rec)
     }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        let output_box = AABB::new(
+            self.center - Vec3::from(self.radius),
+            self.center + Vec3::from(self.radius),
+        );
+
+        Some(output_box)
+    }
 }
 
 pub struct MovingSphere<M: Material> {
@@ -90,7 +100,9 @@ impl<M: Material> MovingSphere<M> {
 }
 
 pub fn center<M: Material>(sphere: &MovingSphere<M>, time: f32) -> Point3 {
-    sphere.center0 + ((time - sphere.time0) / (sphere.time1 - sphere.time0)) * (sphere.center1 - sphere.center0)
+    sphere.center0
+        + ((time - sphere.time0) / (sphere.time1 - sphere.time0))
+            * (sphere.center1 - sphere.center0)
 }
 
 impl<M: Material> Hittable for MovingSphere<M> {
@@ -129,5 +141,19 @@ impl<M: Material> Hittable for MovingSphere<M> {
         rec.set_face_normal(ray, &outward_normal);
 
         Some(rec)
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        let box0 = AABB::new(
+            self.center0 - Vec3::from(self.radius),
+            self.center0 + Vec3::from(self.radius),
+        );
+        let box1 = AABB::new(
+            self.center1 - Vec3::from(self.radius),
+            self.center1 + Vec3::from(self.radius),
+        );
+
+        let output_box = AABB::surrounding_box(&box0, &box1);
+        Some(output_box)
     }
 }

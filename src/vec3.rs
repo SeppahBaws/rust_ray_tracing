@@ -1,6 +1,7 @@
+use rand::Rng;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
-use crate::utils::{random, random_range};
+use crate::utils::random;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Vec3 {
@@ -31,9 +32,9 @@ impl Vec3 {
 
     pub fn random_range(min: f32, max: f32) -> Self {
         Self {
-            x: random_range(min, max),
-            y: random_range(min, max),
-            z: random_range(min, max),
+            x: rand::thread_rng().gen_range(min..max),
+            y: rand::thread_rng().gen_range(min..max),
+            z: rand::thread_rng().gen_range(min..max),
         }
     }
 
@@ -53,7 +54,11 @@ impl Vec3 {
 
     pub fn random_in_unit_disk() -> Self {
         loop {
-            let p = Vec3::new(random_range(-1.0, 1.0), random_range(-1.0, 1.0), 0.0);
+            let p = Vec3::new(
+                rand::thread_rng().gen_range(-1.0..1.0),
+                rand::thread_rng().gen_range(-1.0..1.0),
+                0.0,
+            );
             if p.length_squared() >= 1.0 {
                 continue;
             }

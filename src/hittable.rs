@@ -1,4 +1,5 @@
 use crate::{
+    aabb::AABB,
     materials::Material,
     ray::Ray,
     vec3::{Point3, Vec3},
@@ -25,4 +26,5 @@ impl<'a> HitRecord<'a> {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB>;
 }

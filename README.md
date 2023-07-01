@@ -38,6 +38,12 @@ yep, that's it.
 ![three spheres](./renders/three_spheres.png)
 </details>
 
+<details>
+<summary>Motion blur</summary>
+
+![motion blur](./renders/motion_blur.png)
+</details>
+
 ## Dependencies
 
 - [image](https://crates.io/crates/image): Saving bytes to image file.

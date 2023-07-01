@@ -8,13 +8,7 @@ pub fn to_radians(degrees: f32) -> f32 {
 }
 
 pub fn random() -> f32 {
-    let mut rng = rand::thread_rng();
-    rng.gen::<f32>()
-}
-
-pub fn random_range(min: f32, max: f32) -> f32 {
-    let mut rng = rand::thread_rng();
-    rng.gen_range(min..max)
+    rand::thread_rng().gen::<f32>()
 }
 
 pub fn clamp(x: f32, min: f32, max: f32) -> f32 {
@@ -24,5 +18,21 @@ pub fn clamp(x: f32, min: f32, max: f32) -> f32 {
         max
     } else {
         x
+    }
+}
+
+pub fn min(a: f32, b: f32) -> f32 {
+    if a < b {
+        a
+    } else {
+        b
+    }
+}
+
+pub fn max(a: f32, b: f32) -> f32 {
+    if a > b {
+        a
+    } else {
+        b
     }
 }
