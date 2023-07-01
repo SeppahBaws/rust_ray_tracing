@@ -2,7 +2,8 @@ use rand::Rng;
 use std::io::Write;
 use std::rc::Rc;
 use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
+use texture::CheckerTexture;
+use texture::SolidColor;
 
 use camera::Camera;
 use hittable::Hittable;
@@ -15,8 +16,6 @@ use utils::random;
 use utils::INFINITY;
 use vec3::{Color, Point3, Vec3};
 
-use crate::bvh::BVHNode;
-
 mod aabb;
 mod bvh;
 mod camera;
@@ -26,8 +25,17 @@ mod materials;
 mod objects;
 mod output_buffer;
 mod ray;
+mod texture;
 mod utils;
 mod vec3;
+
+struct SceneInfo {
+    pub world: HittableList,
+    pub lookfrom: Point3,
+    pub lookat: Point3,
+    pub vfov: f32,
+    pub aperture: f32,
+}
 
 fn main() {
     const ASPECT_RATIO: f32 = 16.0 / 9.0;
@@ -37,21 +45,34 @@ fn main() {
     const SAMPLES_PER_PIXEL: u32 = 100;
     const MAX_DEPTH: i32 = 50;
 
-    let world = random_scene();
+    let scene_select = 0;
+    let scene: SceneInfo = match scene_select {
+        1 => SceneInfo {
+            world: random_scene(),
+            lookfrom: Point3::new(13.0, 2.0, 3.0),
+            lookat: Point3::from(0.0),
+            vfov: 20.0,
+            aperture: 0.1,
+        },
+        2 | _ => SceneInfo {
+            world: two_spheres(),
+            lookfrom: Point3::new(13.0, 2.0, 3.0),
+            lookat: Point3::from(0.0),
+            vfov: 20.0,
+            aperture: 0.0,
+        },
+    };
 
-    let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = Point3::new(0.0, 0.0, 0.0);
     let vup = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
-    let aperture = 0.1;
 
     let cam = Camera::new(
-        lookfrom,
-        lookat,
+        scene.lookfrom,
+        scene.lookat,
         vup,
-        20.0,
+        scene.vfov,
         ASPECT_RATIO,
-        aperture,
+        scene.aperture,
         dist_to_focus,
         0.0,
         1.0,
@@ -83,7 +104,7 @@ fn main() {
                 let v = ((j as f32) + random()) / (IMAGE_HEIGHT - 1) as f32;
 
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                pixel_color += ray_color(&r, &scene.world, MAX_DEPTH);
             }
 
             buffer.write_color(i, j, &pixel_color, SAMPLES_PER_PIXEL);
@@ -93,7 +114,11 @@ fn main() {
     let end = SystemTime::now().duration_since(begin).unwrap().as_secs();
 
     let now = chrono::Local::now();
-    println!("\rFinished rendering at {} - took {}s", now.format("%H:%M:%S"), end);
+    println!(
+        "\rFinished rendering at {} - took {}s",
+        now.format("%H:%M:%S"),
+        end
+    );
     println!("Writing buffer to file...");
 
     if NR_CHANNELS != 3 && NR_CHANNELS != 4 {
@@ -143,7 +168,11 @@ fn ray_color(r: &Ray, world: &HittableList, depth: i32) -> Color {
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
+    let checker = CheckerTexture::new(
+        SolidColor::new(Color::new(0.2, 0.3, 0.1)),
+        SolidColor::new(Color::from(0.9)),
+    );
+    let ground_material = Lambertian::from_texture(Rc::new(checker));
     world.add(Rc::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -202,4 +231,27 @@ fn random_scene() -> HittableList {
 
     // world
     HittableList::from(Rc::new(bvh::BVHNode::from(&world, 0.0, 1.0)))
+}
+
+fn two_spheres() -> HittableList {
+    let mut world = HittableList::new();
+
+    let checker = Rc::new(CheckerTexture::new(
+        SolidColor::new(Color::new(0.2, 0.3, 0.1)),
+        SolidColor::new(Color::from(0.9)),
+    ));
+
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        Lambertian::from_texture(checker.clone()),
+    )));
+
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        Lambertian::from_texture(checker.clone()),
+    )));
+
+    world
 }

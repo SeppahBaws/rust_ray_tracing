@@ -9,6 +9,18 @@ yep, that's it.
 ## Renders archive
 
 <details>
+<summary>Checkered spheres</summary>
+
+![motion blur](./renders/checkered_spheres.png)
+</details>
+
+<details>
+<summary>Motion blur</summary>
+
+![motion blur](./renders/motion_blur.png)
+</details>
+
+<details>
 <summary>In one weekend cover render</summary>
 
 ![in one weekend](./renders/in_one_weekend.png)
@@ -36,12 +48,6 @@ yep, that's it.
 <summary>Three spheres</summary>
 
 ![three spheres](./renders/three_spheres.png)
-</details>
-
-<details>
-<summary>Motion blur</summary>
-
-![motion blur](./renders/motion_blur.png)
 </details>
 
 ## Dependencies

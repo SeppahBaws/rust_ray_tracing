@@ -3,6 +3,7 @@ use crate::{
     hittable::{HitRecord, Hittable},
     materials::Material,
     ray::Ray,
+    utils::PI,
     vec3::{Point3, Vec3},
 };
 
@@ -19,6 +20,13 @@ impl<M: Material> Sphere<M> {
             radius,
             material,
         }
+    }
+
+    fn get_uv(p: &Point3) -> (f32, f32) {
+        let theta = (-p.y).acos();
+        let phi = (-p.z).atan2(p.x) + PI;
+
+        (phi / (2.0 * PI), theta / PI)
     }
 }
 
@@ -49,6 +57,7 @@ impl<M: Material> Hittable for Sphere<M> {
         let outward_normal = (p - self.center) / self.radius;
         let mut rec = HitRecord {
             t: root,
+            uv: Self::get_uv(&p),
             p,
             normal: Vec3::from(0.0),
             mat: &self.material,
@@ -132,6 +141,7 @@ impl<M: Material> Hittable for MovingSphere<M> {
         let outward_normal = (p - center(&self, ray.time)) / self.radius;
         let mut rec = HitRecord {
             t: root,
+            uv: (0.0, 0.0),
             p,
             normal: Vec3::from(0.0),
             mat: &self.material,

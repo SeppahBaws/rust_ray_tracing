@@ -1,6 +1,9 @@
+use std::rc::Rc;
+
 use crate::{
     hittable::HitRecord,
     ray::Ray,
+    texture::{SolidColor, Texture},
     utils::random,
     vec3::{Color, Vec3},
 };
@@ -9,13 +12,19 @@ pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (bool, Color, Ray);
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Lambertian {
-    pub albedo: Color,
+    pub albedo: Rc<dyn Texture>,
 }
 
 impl Lambertian {
     pub fn new(albedo: Color) -> Self {
+        Self {
+            albedo: Rc::new(SolidColor::new(albedo)),
+        }
+    }
+
+    pub fn from_texture(albedo: Rc<dyn Texture>) -> Self {
         Self { albedo }
     }
 }
@@ -30,7 +39,7 @@ impl Material for Lambertian {
         }
 
         let scattered = Ray::new(rec.p, scatter_direction, r_in.time);
-        let attenuation = self.albedo;
+        let attenuation = self.albedo.value(rec.uv, rec.p);
 
         (true, attenuation, scattered)
     }
@@ -52,7 +61,11 @@ impl Material for Metal {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (bool, Color, Ray) {
         let reflected = Vec3::reflect(&Vec3::unit_vector(r_in.direction), &rec.normal);
 
-        let scattered = Ray::new(rec.p, reflected + self.fuzz * Vec3::random_in_unit_sphere(), r_in.time);
+        let scattered = Ray::new(
+            rec.p,
+            reflected + self.fuzz * Vec3::random_in_unit_sphere(),
+            r_in.time,
+        );
         let is_scattered = Vec3::dot(&reflected, &rec.normal) > 0.0;
 
         (is_scattered, self.albedo, scattered)
