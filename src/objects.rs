@@ -42,7 +42,7 @@ impl<M: Material> Hittable for Sphere<M> {
             return None;
         }
 
-        let sqrtd = f32::sqrt(discriminant);
+        let sqrtd = discriminant.sqrt();
 
         // Find the nearset root that lies in the acceptable range.
         let mut root = (-half_b - sqrtd) / a;
@@ -57,10 +57,11 @@ impl<M: Material> Hittable for Sphere<M> {
         let outward_normal = (p - self.center) / self.radius;
         let mut rec = HitRecord {
             t: root,
-            uv: Self::get_uv(&p),
+            uv: Self::get_uv(&outward_normal),
             p,
-            normal: Vec3::from(0.0),
             mat: &self.material,
+            // These two are set by set_face_normal
+            normal: Vec3::from(0.0),
             front_face: true,
         };
 
@@ -143,8 +144,9 @@ impl<M: Material> Hittable for MovingSphere<M> {
             t: root,
             uv: (0.0, 0.0),
             p,
-            normal: Vec3::from(0.0),
             mat: &self.material,
+            // These two are set by set_face_normal
+            normal: Vec3::from(0.0),
             front_face: true,
         };
 

@@ -2,20 +2,23 @@ use rand::Rng;
 use std::io::Write;
 use std::rc::Rc;
 use std::time::SystemTime;
-use texture::CheckerTexture;
-use texture::NoiseTexture;
-use texture::SolidColor;
+use texture::ImageTexture;
 
-use camera::Camera;
-use hittable::Hittable;
-use hittable_list::HittableList;
-use materials::{Dielectric, Lambertian, Metal};
-use objects::{MovingSphere, Sphere};
-use output_buffer::OutputBuffer;
-use ray::Ray;
-use utils::random;
-use utils::INFINITY;
-use vec3::{Color, Point3, Vec3};
+use crate::{
+    camera::Camera,
+    hittable::Hittable,
+    hittable_list::HittableList,
+    materials::{Dielectric, Lambertian, Metal},
+    objects::{MovingSphere, Sphere},
+    output_buffer::OutputBuffer,
+    ray::Ray,
+    texture::CheckerTexture,
+    texture::NoiseTexture,
+    texture::SolidColor,
+    utils::random,
+    utils::INFINITY,
+    vec3::{Color, Point3, Vec3},
+};
 
 mod aabb;
 mod bvh;
@@ -44,7 +47,7 @@ fn main() {
     const IMAGE_WIDTH: u32 = 400;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f32 / ASPECT_RATIO) as u32;
     const NR_CHANNELS: u32 = 3;
-    const SAMPLES_PER_PIXEL: u32 = 100;
+    const SAMPLES_PER_PIXEL: u32 = 10;
     const MAX_DEPTH: i32 = 50;
 
     let scene_select = 0;
@@ -63,9 +66,16 @@ fn main() {
             vfov: 20.0,
             aperture: 0.0,
         },
-        3 | _ => SceneInfo {
+        3 => SceneInfo {
             world: two_perlin_spheres(),
             lookfrom: Point3::new(13.0, 2.0, 3.0),
+            lookat: Point3::from(0.0),
+            vfov: 20.0,
+            aperture: 0.0,
+        },
+        4 | _ => SceneInfo {
+            world: earth(),
+            lookfrom: Point3::new(13.0, 2.0, 1.0),
             lookat: Point3::from(0.0),
             vfov: 20.0,
             aperture: 0.0,
@@ -282,4 +292,15 @@ fn two_perlin_spheres() -> HittableList {
     )));
 
     world
+}
+
+fn earth() -> HittableList {
+    let earth_texture = Rc::new(ImageTexture::new("res/earthmap.jpg"));
+    let globe = Rc::new(Sphere::new(
+        Point3::from(0.0),
+        2.0,
+        Lambertian::from_texture(earth_texture),
+    ));
+
+    HittableList::from(globe)
 }

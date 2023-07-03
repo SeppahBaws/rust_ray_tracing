@@ -9,6 +9,12 @@ yep, that's it.
 ## Renders archive
 
 <details>
+<summary>Earth texture mapped on a sphere</summary>
+
+![motion blur](./renders/earth_sphere.png)
+</details>
+
+<details>
 <summary>Perlin noise marble texture</summary>
 
 ![motion blur](./renders/perlin_marble.png)
