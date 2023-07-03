@@ -1,5 +1,5 @@
 use image::io::Reader as ImageReader;
-use std::{cmp::min, rc::Rc};
+use std::rc::Rc;
 
 use crate::{
     perlin::Perlin,
@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub trait Texture {
-    fn value(&self, uv: (f32, f32), p: Point3) -> Color;
+    fn value(&self, uv: &(f32, f32), p: Point3) -> Color;
 }
 
 pub struct SolidColor {
@@ -21,7 +21,7 @@ impl SolidColor {
 }
 
 impl Texture for SolidColor {
-    fn value(&self, uv: (f32, f32), p: Point3) -> Color {
+    fn value(&self, uv: &(f32, f32), p: Point3) -> Color {
         self.color
     }
 }
@@ -45,7 +45,7 @@ impl CheckerTexture {
 }
 
 impl Texture for CheckerTexture {
-    fn value(&self, uv: (f32, f32), p: Point3) -> Color {
+    fn value(&self, uv: &(f32, f32), p: Point3) -> Color {
         let sines = (10.0 * p.x).sin() * (10.0 * p.y).sin() * (10.0 * p.z).sin();
 
         if sines < 0.0 {
@@ -71,7 +71,7 @@ impl NoiseTexture {
 }
 
 impl Texture for NoiseTexture {
-    fn value(&self, _uv: (f32, f32), p: Point3) -> Color {
+    fn value(&self, _uv: &(f32, f32), p: Point3) -> Color {
         let noise = self.scale * p.z + 10.0 * self.noise.turb(&p);
         Color::from(1.0) * 0.5 * (1.0 + noise.sin())
     }
@@ -96,7 +96,7 @@ impl ImageTexture {
 }
 
 impl Texture for ImageTexture {
-    fn value(&self, uv: (f32, f32), p: Point3) -> Color {
+    fn value(&self, uv: &(f32, f32), p: Point3) -> Color {
         let u = uv.0.clamp(0.0, 1.0);
         let v = 1.0 - uv.1.clamp(0.0, 1.0);
 

@@ -1,9 +1,9 @@
-use rand::Rng;
 use crate::{
     ray::Ray,
     utils::to_radians,
     vec3::{Point3, Vec3},
 };
+use rand::Rng;
 
 pub struct Camera {
     origin: Point3,

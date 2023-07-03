@@ -9,6 +9,18 @@ yep, that's it.
 ## Renders archive
 
 <details>
+<summary>Empty cornell box</summary>
+
+![motion blur](./renders/empty_cornell.png)
+</details>
+
+<details>
+<summary>Rectangle light</summary>
+
+![motion blur](./renders/rectangle_light.png)
+</details>
+
+<details>
 <summary>Earth texture mapped on a sphere</summary>
 
 ![motion blur](./renders/earth_sphere.png)

@@ -5,11 +5,15 @@ use crate::{
     ray::Ray,
     texture::{SolidColor, Texture},
     utils::random,
-    vec3::{Color, Vec3},
+    vec3::{Color, Point3, Vec3},
 };
 
 pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (bool, Color, Ray);
+    fn emitted(&self, uv: &(f32, f32), p: &Point3) -> Color {
+        // Return black by default.
+        Color::from(0.0)
+    }
 }
 
 #[derive(Clone)]
@@ -39,7 +43,7 @@ impl Material for Lambertian {
         }
 
         let scattered = Ray::new(rec.p, scatter_direction, r_in.time);
-        let attenuation = self.albedo.value(rec.uv, rec.p);
+        let attenuation = self.albedo.value(&rec.uv, rec.p);
 
         (true, attenuation, scattered)
     }
@@ -113,4 +117,33 @@ fn reflectance(cosine: f32, ref_idx: f32) -> f32 {
     let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
     r0 = r0 * r0;
     r0 + (1.0 - r0) * f32::powi(1.0 - cosine, 5)
+}
+
+#[derive(Clone)]
+pub struct DiffuseLight {
+    emit: Rc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(emission_texture: Rc<dyn Texture>) -> Self {
+        Self {
+            emit: emission_texture,
+        }
+    }
+
+    pub fn from_color(color: Color) -> Self {
+        Self {
+            emit: Rc::new(SolidColor::new(color)),
+        }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(&self, r_in: &Ray, _rec: &HitRecord) -> (bool, Color, Ray) {
+        (false, Color::from(0.0), r_in.clone())
+    }
+
+    fn emitted(&self, uv: &(f32, f32), p: &Point3) -> Color {
+        self.emit.value(uv, p.clone())
+    }
 }

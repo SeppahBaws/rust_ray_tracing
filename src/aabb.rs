@@ -23,9 +23,24 @@ impl AABB {
 
     pub fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> bool {
         for (minimum, maximum, origin, direction) in [
-            (self.minimum.x, self.maximum.x, ray.origin.x, ray.direction.x),
-            (self.minimum.y, self.maximum.y, ray.origin.y, ray.direction.y),
-            (self.minimum.z, self.maximum.z, ray.origin.z, ray.direction.z),
+            (
+                self.minimum.x,
+                self.maximum.x,
+                ray.origin.x,
+                ray.direction.x,
+            ),
+            (
+                self.minimum.y,
+                self.maximum.y,
+                ray.origin.y,
+                ray.direction.y,
+            ),
+            (
+                self.minimum.z,
+                self.maximum.z,
+                ray.origin.z,
+                ray.direction.z,
+            ),
         ] {
             let inv_d = 1.0 / direction;
             let mut t0 = (minimum - origin) * inv_d;
